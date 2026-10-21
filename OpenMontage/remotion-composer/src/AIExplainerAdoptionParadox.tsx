@@ -5,6 +5,7 @@ import {
   Video,
   Audio,
   spring,
+  staticFile,
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
@@ -847,7 +848,7 @@ const Cut10_Outro: React.FC<SceneProps> = ({ audioPath, duration }) => {
  * Main Composition
  */
 export const AIExplainerAdoptionParadox: React.FC = () => {
-  const audioBasePath = "/projects/ai_explainer_60s/assets/audio";
+  const audioBasePath = staticFile("ai_explainer_audio");
 
   return (
     <>
