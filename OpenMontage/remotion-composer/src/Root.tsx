@@ -17,6 +17,7 @@ import { CaptionOverlay, WordCaption } from "./components/CaptionOverlay";
 import { CollageBurst, CollageBurstProps } from "./CollageBurst";
 import { LyricOverlay, LyricOverlayProps } from "./LyricOverlay";
 import { AIExplainerAdoptionParadox } from "./AIExplainerAdoptionParadox";
+import { AdditionExplainer30s } from "./AdditionExplainer30s";
 
 // ---------------------------------------------------------------------------
 // Theme System — prevents every video from looking like dark fintech
@@ -335,6 +336,15 @@ export const Root: React.FC = () => {
         id="AIExplainerAdoptionParadox"
         component={AIExplainerAdoptionParadox}
         durationInFrames={1800}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{}}
+      />
+      <Composition
+        id="AdditionExplainer30s"
+        component={AdditionExplainer30s}
+        durationInFrames={900}
         fps={30}
         width={1920}
         height={1080}
