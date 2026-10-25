@@ -18,6 +18,7 @@ import { CollageBurst, CollageBurstProps } from "./CollageBurst";
 import { LyricOverlay, LyricOverlayProps } from "./LyricOverlay";
 import { AIExplainerAdoptionParadox } from "./AIExplainerAdoptionParadox";
 import { AdditionExplainer30s } from "./AdditionExplainer30s";
+import { Home10Installation30s } from "./Home10Installation30s";
 
 // ---------------------------------------------------------------------------
 // Theme System — prevents every video from looking like dark fintech
@@ -344,6 +345,15 @@ export const Root: React.FC = () => {
       <Composition
         id="AdditionExplainer30s"
         component={AdditionExplainer30s}
+        durationInFrames={900}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{}}
+      />
+      <Composition
+        id="Home10Installation30s"
+        component={Home10Installation30s}
         durationInFrames={900}
         fps={30}
         width={1920}
