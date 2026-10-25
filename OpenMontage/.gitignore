@@ -95,6 +95,8 @@ remotion-composer/public/*
 !remotion-composer/public/home10_audio/
 # And the Home 10 generated photos (needed to render)
 !remotion-composer/public/home10_images/
+# And the Home 10 Hausa narration (needed to render the Hausa composition)
+!remotion-composer/public/home10_audio_ha/
 # Ignore test/scratch compositions in demo-props (keep only curated demos)
 remotion-composer/public/demo-props/test-*
 remotion-composer/public/demo-props/talking-head-*

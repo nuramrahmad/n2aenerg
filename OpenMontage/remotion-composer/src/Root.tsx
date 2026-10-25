@@ -358,7 +358,16 @@ export const Root: React.FC = () => {
         fps={30}
         width={1920}
         height={1080}
-        defaultProps={{}}
+        defaultProps={{ locale: "en" }}
+      />
+      <Composition
+        id="Home10Installation30s_Hausa"
+        component={Home10Installation30s}
+        durationInFrames={900}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{ locale: "ha" }}
       />
     </>
   );

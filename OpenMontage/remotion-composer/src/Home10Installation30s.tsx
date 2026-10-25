@@ -92,7 +92,32 @@ const THEME = {
   warn: "#FCA5A5",
 };
 
-const ConceptLabel: React.FC<{ frame: number; fps: number }> = ({ frame, fps }) => {
+type Locale = "en" | "ha";
+
+const CONCEPT_LABEL: Record<Locale, string> = {
+  en: "CONCEPT. NOT CERTIFIED OR APPROVED.",
+  ha: "RA'AYI NE. BA A TABBATAR KO AMINCEWA DA SHI BA.",
+};
+
+const CLOSE_BODY: Record<Locale, string> = {
+  en: "Concept in development. Not certified or approved.",
+  ha: "Shirin yana kan ci gaba. Ba a tabbatar ko amincewa da shi ba.",
+};
+
+const CAPTIONS: Record<Locale, Record<"cylinder" | "regulator" | "kitchen", string[]>> = {
+  en: {
+    cylinder: ["45 L · 200 bar", "About 10.9 SCM (preliminary)"],
+    regulator: ["Pressure steps down in stages", "Only low-pressure gas enters the kitchen"],
+    kitchen: ["2 kW + 3 kW burners", "Flame-failure protection"],
+  },
+  ha: {
+    cylinder: ["45 L · 200 bar", "Kimanin SCM 10.9 (kiyasi na farko)"],
+    regulator: ["Matsin lamba yana raguwa a matakai-matakai", "Iskar gas mai ƙaramin matsi kawai ke shiga dakin girki"],
+    kitchen: ["Murhu kilowatt 2 + kilowatt 3", "Kariya idan wuta ta mutu"],
+  },
+};
+
+const ConceptLabel: React.FC<{ frame: number; fps: number; locale: Locale }> = ({ frame, fps, locale }) => {
   const opacity = spring({ frame, fps, config: { damping: 20 }, from: 0, to: 1 });
   return (
     <div
@@ -111,13 +136,13 @@ const ConceptLabel: React.FC<{ frame: number; fps: number }> = ({ frame, fps }) 
           padding: "8px 20px",
           background: "rgba(0,0,0,0.55)",
           borderRadius: 8,
-          fontSize: 28,
+          fontSize: 26,
           fontWeight: 800,
           color: THEME.warn,
           letterSpacing: 1,
         }}
       >
-        CONCEPT. NOT CERTIFIED OR APPROVED.
+        {CONCEPT_LABEL[locale]}
       </div>
     </div>
   );
@@ -164,12 +189,13 @@ const Caption: React.FC<{ lines: string[]; frame: number; fps: number; from?: nu
 
 interface SceneProps {
   audioPath?: string;
+  locale: Locale;
 }
 
 // ---------------------------------------------------------------------------
 // Cut 1: Home overview
 // ---------------------------------------------------------------------------
-const Cut1_Overview: React.FC<SceneProps> = ({ audioPath }) => {
+const Cut1_Overview: React.FC<SceneProps> = ({ audioPath, locale }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const titleIn = spring({ frame, fps, config: { damping: 20 }, from: 0, to: 1 });
@@ -188,7 +214,7 @@ const Cut1_Overview: React.FC<SceneProps> = ({ audioPath }) => {
         fromScale={1.0}
         toScale={1.12}
       />
-      <ConceptLabel frame={frame} fps={fps} />
+      <ConceptLabel frame={frame} fps={fps} locale={locale} />
       <div
         style={{
           position: "absolute",
@@ -218,7 +244,7 @@ const Cut1_Overview: React.FC<SceneProps> = ({ audioPath }) => {
 // ---------------------------------------------------------------------------
 // Cut 2: Cylinder shelter
 // ---------------------------------------------------------------------------
-const Cut2_Cylinder: React.FC<SceneProps> = ({ audioPath }) => {
+const Cut2_Cylinder: React.FC<SceneProps> = ({ audioPath, locale }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const photoBase = staticFile("home10_images");
@@ -263,7 +289,7 @@ const Cut2_Cylinder: React.FC<SceneProps> = ({ audioPath }) => {
         fromScale={1.0}
         toScale={1.1}
       />
-      <Caption lines={["45 L · 200 bar", "About 10.9 SCM (preliminary)"]} frame={frame} fps={fps} />
+      <Caption lines={CAPTIONS[locale].cylinder} frame={frame} fps={fps} />
     </AbsoluteFill>
   );
 };
@@ -271,7 +297,7 @@ const Cut2_Cylinder: React.FC<SceneProps> = ({ audioPath }) => {
 // ---------------------------------------------------------------------------
 // Cut 3: Regulator box
 // ---------------------------------------------------------------------------
-const Cut3_Regulator: React.FC<SceneProps> = ({ audioPath }) => {
+const Cut3_Regulator: React.FC<SceneProps> = ({ audioPath, locale }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const photoBase = staticFile("home10_images");
@@ -297,7 +323,7 @@ const Cut3_Regulator: React.FC<SceneProps> = ({ audioPath }) => {
         fromScale={1.0}
         toScale={1.1}
       />
-      <Caption lines={["Pressure steps down in stages", "Only low-pressure gas enters the kitchen"]} frame={frame} fps={fps} />
+      <Caption lines={CAPTIONS[locale].regulator} frame={frame} fps={fps} />
     </AbsoluteFill>
   );
 };
@@ -305,7 +331,7 @@ const Cut3_Regulator: React.FC<SceneProps> = ({ audioPath }) => {
 // ---------------------------------------------------------------------------
 // Cut 4: Kitchen + burner
 // ---------------------------------------------------------------------------
-const Cut4_Kitchen: React.FC<SceneProps> = ({ audioPath }) => {
+const Cut4_Kitchen: React.FC<SceneProps> = ({ audioPath, locale }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const photoBase = staticFile("home10_images");
@@ -321,7 +347,7 @@ const Cut4_Kitchen: React.FC<SceneProps> = ({ audioPath }) => {
         fromScale={1.0}
         toScale={1.15}
       />
-      <Caption lines={["2 kW + 3 kW burners", "Flame-failure protection"]} frame={frame} fps={fps} />
+      <Caption lines={CAPTIONS[locale].kitchen} frame={frame} fps={fps} />
     </AbsoluteFill>
   );
 };
@@ -329,7 +355,7 @@ const Cut4_Kitchen: React.FC<SceneProps> = ({ audioPath }) => {
 // ---------------------------------------------------------------------------
 // Cut 5: Close
 // ---------------------------------------------------------------------------
-const Cut5_Close: React.FC<SceneProps> = ({ audioPath }) => {
+const Cut5_Close: React.FC<SceneProps> = ({ audioPath, locale }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const opacity = spring({ frame, fps, config: { damping: 20 }, from: 0, to: 1 });
@@ -347,7 +373,7 @@ const Cut5_Close: React.FC<SceneProps> = ({ audioPath }) => {
         fromScale={1.15}
         toScale={1.0}
       />
-      <ConceptLabel frame={frame} fps={fps} />
+      <ConceptLabel frame={frame} fps={fps} locale={locale} />
       <div style={{ position: "absolute", top: "38%", left: 0, right: 0, textAlign: "center", opacity }}>
         <div
           style={{
@@ -369,32 +395,39 @@ const Cut5_Close: React.FC<SceneProps> = ({ audioPath }) => {
             textShadow: "0 2px 12px rgba(0,0,0,0.6)",
           }}
         >
-          Concept in development. Not certified or approved.
+          {CLOSE_BODY[locale]}
         </div>
       </div>
     </AbsoluteFill>
   );
 };
 
-export const Home10Installation30s: React.FC = () => {
-  const audioBase = staticFile("home10_audio");
+interface Home10Props {
+  locale?: Locale;
+}
+
+export const Home10Installation30s: React.FC<Home10Props> = ({ locale = "en" }) => {
+  // Narration differs per language; the synthesized background music does
+  // not, so it always comes from the original (English-named) audio folder.
+  const narrationBase = staticFile(locale === "ha" ? "home10_audio_ha" : "home10_audio");
+  const bgmBase = staticFile("home10_audio");
   return (
     <AbsoluteFill>
-      <Audio src={`${audioBase}/home10_bgm.wav`} volume={0.5} />
+      <Audio src={`${bgmBase}/home10_bgm.wav`} volume={0.5} />
       <Sequence from={0} durationInFrames={150}>
-        <Cut1_Overview audioPath={`${audioBase}/h1_overview.wav`} />
+        <Cut1_Overview audioPath={`${narrationBase}/h1_overview.wav`} locale={locale} />
       </Sequence>
       <Sequence from={150} durationInFrames={210}>
-        <Cut2_Cylinder audioPath={`${audioBase}/h2_cylinder.wav`} />
+        <Cut2_Cylinder audioPath={`${narrationBase}/h2_cylinder.wav`} locale={locale} />
       </Sequence>
       <Sequence from={360} durationInFrames={210}>
-        <Cut3_Regulator audioPath={`${audioBase}/h3_regulator.wav`} />
+        <Cut3_Regulator audioPath={`${narrationBase}/h3_regulator.wav`} locale={locale} />
       </Sequence>
       <Sequence from={570} durationInFrames={210}>
-        <Cut4_Kitchen audioPath={`${audioBase}/h4_kitchen.wav`} />
+        <Cut4_Kitchen audioPath={`${narrationBase}/h4_kitchen.wav`} locale={locale} />
       </Sequence>
       <Sequence from={780} durationInFrames={120}>
-        <Cut5_Close audioPath={`${audioBase}/h5_close.wav`} />
+        <Cut5_Close audioPath={`${narrationBase}/h5_close.wav`} locale={locale} />
       </Sequence>
     </AbsoluteFill>
   );
