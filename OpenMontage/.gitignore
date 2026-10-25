@@ -93,6 +93,8 @@ remotion-composer/public/*
 !remotion-composer/public/addition_explainer_audio/
 # And the Home 10 narration + synthesized background music (needed to render)
 !remotion-composer/public/home10_audio/
+# And the Home 10 generated photos (needed to render)
+!remotion-composer/public/home10_images/
 # Ignore test/scratch compositions in demo-props (keep only curated demos)
 remotion-composer/public/demo-props/test-*
 remotion-composer/public/demo-props/talking-head-*
