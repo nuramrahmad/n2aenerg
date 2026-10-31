@@ -168,7 +168,7 @@ const Scene5_Voice: React.FC<SceneProps> = ({ audioPath }) => {
 // Scene 6: Logo close (26-30s, 120 frames)
 // ---------------------------------------------------------------------------
 interface Scene6Props extends SceneProps {
-  logoSrc?: string;
+  logoSrc: string;
   handle: string;
 }
 
@@ -177,7 +177,6 @@ const Scene6_Logo: React.FC<Scene6Props> = ({ audioPath, logoSrc, handle }) => {
   const { fps } = useVideoConfig();
   const logoScale = spring({ frame, fps, config: { damping: 14, stiffness: 90 }, from: 0.85, to: 1 });
   const logoOpacity = spring({ frame, fps, config: { damping: 20 }, from: 0, to: 1 });
-  const subOpacity = spring({ frame: frame - 25, fps, config: { damping: 20 }, from: 0, to: 1 });
   const footerOpacity = spring({ frame: frame - 45, fps, config: { damping: 20 }, from: 0, to: 1 });
 
   return (
@@ -189,26 +188,22 @@ const Scene6_Logo: React.FC<Scene6Props> = ({ audioPath, logoSrc, handle }) => {
       }}
     >
       {audioPath && <Audio src={audioPath} />}
-      <div style={{ transform: `scale(${logoScale})`, opacity: logoOpacity, textAlign: "center" }}>
-        {logoSrc ? (
-          // eslint-disable-next-line jsx-a11y/alt-text
-          <img src={logoSrc} style={{ width: 360, height: "auto" }} />
-        ) : (
-          <div style={{ fontSize: 86, fontWeight: 900, color: BRAND.cream, letterSpacing: 1 }}>
-            Yusurpay
-          </div>
-        )}
-      </div>
+      {/* The lockup is a dark-on-light logo (#141414 icon/text, grey tagline),
+          not designed for direct placement on the solid brand green -- give
+          it a cream card to sit on so it stays legible, per the "contrast"
+          implied by its own color choices. */}
       <div
         style={{
-          marginTop: 24,
-          fontSize: 30,
-          fontWeight: 700,
-          color: BRAND.cream,
-          opacity: subOpacity,
+          transform: `scale(${logoScale})`,
+          opacity: logoOpacity,
+          background: BRAND.cream,
+          borderRadius: 20,
+          padding: "36px 44px",
+          boxShadow: "0 12px 40px rgba(0,0,0,0.25)",
         }}
       >
-        Interest-free finance
+        {/* eslint-disable-next-line jsx-a11y/alt-text */}
+        <img src={logoSrc} style={{ width: 420, height: "auto", display: "block" }} />
       </div>
       <div
         style={{
@@ -234,7 +229,10 @@ interface YusurpayProps {
   handle?: string;
 }
 
-export const YusurpayComingSoon30s: React.FC<YusurpayProps> = ({ logoSrc, handle = "@yusurpay" }) => {
+export const YusurpayComingSoon30s: React.FC<YusurpayProps> = ({
+  logoSrc = staticFile("yusurpay_brand/yusurpay-lockup-en.svg"),
+  handle = "@yusurpay",
+}) => {
   const audioBase = staticFile("yusurpay_audio");
   return (
     <AbsoluteFill>

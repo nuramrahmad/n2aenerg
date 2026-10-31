@@ -97,9 +97,10 @@ remotion-composer/public/*
 !remotion-composer/public/home10_images/
 # And the Home 10 Hausa narration (needed to render the Hausa composition)
 !remotion-composer/public/home10_audio_ha/
-# And the Yusurpay Coming Soon clips + audio (needed to render)
+# And the Yusurpay Coming Soon clips + audio + logo (needed to render)
 !remotion-composer/public/yusurpay_clips/
 !remotion-composer/public/yusurpay_audio/
+!remotion-composer/public/yusurpay_brand/
 # Ignore test/scratch compositions in demo-props (keep only curated demos)
 remotion-composer/public/demo-props/test-*
 remotion-composer/public/demo-props/talking-head-*
