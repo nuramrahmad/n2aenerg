@@ -108,7 +108,7 @@ def build_payload(prompt, duration):
             "prompt": prompt,
             "aspect_ratio": "9:16",
             "duration": duration,
-            "resolution": "1080p",
+            "resolution": "720p",
             "generate_audio": False,
         },
     }
