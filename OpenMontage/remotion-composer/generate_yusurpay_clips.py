@@ -141,12 +141,27 @@ def wait_for(task_id, max_wait_s=600, poll_s=10):
         body = unwrap(resp.json())
         status = (body.get("status") or "").lower()
         if status in ("completed", "succeeded", "success"):
-            output = unwrap(body.get("output") or body)
-            video_url = (
-                output.get("video_url")
-                or output.get("videoUrl")
-                or (output.get("video") or {}).get("url")
-            )
+            raw_output = body.get("output", body)
+            # output can be a dict, or a list of result items (e.g. [{"url": "..."}])
+            if isinstance(raw_output, list):
+                candidates = raw_output
+            else:
+                output = unwrap(raw_output)
+                candidates = output.get("results") or output.get("outputs") or [output]
+
+            video_url = None
+            for item in candidates:
+                if not isinstance(item, dict):
+                    continue
+                video_url = (
+                    item.get("url")
+                    or item.get("video_url")
+                    or item.get("videoUrl")
+                    or (item.get("video") or {}).get("url")
+                )
+                if video_url:
+                    break
+
             if not video_url:
                 raise RuntimeError(f"Completed but no video URL found: {body}")
             return video_url
