@@ -19,6 +19,7 @@ import { LyricOverlay, LyricOverlayProps } from "./LyricOverlay";
 import { AIExplainerAdoptionParadox } from "./AIExplainerAdoptionParadox";
 import { AdditionExplainer30s } from "./AdditionExplainer30s";
 import { Home10Installation30s } from "./Home10Installation30s";
+import { YusurpayComingSoon30s } from "./YusurpayComingSoon30s";
 
 // ---------------------------------------------------------------------------
 // Theme System — prevents every video from looking like dark fintech
@@ -368,6 +369,15 @@ export const Root: React.FC = () => {
         width={1920}
         height={1080}
         defaultProps={{ locale: "ha" }}
+      />
+      <Composition
+        id="YusurpayComingSoon30s"
+        component={YusurpayComingSoon30s}
+        durationInFrames={900}
+        fps={30}
+        width={1080}
+        height={1920}
+        defaultProps={{ handle: "@yusurpay" }}
       />
     </>
   );
