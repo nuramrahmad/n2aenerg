@@ -114,14 +114,21 @@ def build_payload(prompt, duration):
     }
 
 
+def unwrap(data):
+    """HiAPI wraps responses as {"code":200,"data":{...},"message":"success"}."""
+    if isinstance(data, dict) and "data" in data and isinstance(data["data"], dict):
+        return data["data"]
+    return data
+
+
 def submit(prompt, duration):
     resp = requests.post(BASE_URL, headers=HEADERS, json=build_payload(prompt, duration), timeout=30)
     if resp.status_code >= 400:
         raise RuntimeError(f"HTTP {resp.status_code}: {resp.text[:500]}")
-    data = resp.json()
-    task_id = data.get("taskId") or data.get("id") or data.get("task_id")
+    body = unwrap(resp.json())
+    task_id = body.get("taskId") or body.get("id") or body.get("task_id")
     if not task_id:
-        raise RuntimeError(f"No task id in response: {data}")
+        raise RuntimeError(f"No task id in response: {resp.json()}")
     return task_id
 
 
@@ -131,20 +138,20 @@ def wait_for(task_id, max_wait_s=600, poll_s=10):
     while time.time() - start < max_wait_s:
         resp = requests.get(url, headers=HEADERS, timeout=30)
         resp.raise_for_status()
-        data = resp.json()
-        status = (data.get("status") or "").lower()
+        body = unwrap(resp.json())
+        status = (body.get("status") or "").lower()
         if status in ("completed", "succeeded", "success"):
-            output = data.get("output") or data
+            output = unwrap(body.get("output") or body)
             video_url = (
                 output.get("video_url")
                 or output.get("videoUrl")
                 or (output.get("video") or {}).get("url")
             )
             if not video_url:
-                raise RuntimeError(f"Completed but no video URL found, keys={list(output.keys())}")
+                raise RuntimeError(f"Completed but no video URL found: {body}")
             return video_url
         if status in ("failed", "error"):
-            raise RuntimeError(f"Generation failed: {data}")
+            raise RuntimeError(f"Generation failed: {body}")
         time.sleep(poll_s)
     raise TimeoutError("timed out waiting for video generation")
 
