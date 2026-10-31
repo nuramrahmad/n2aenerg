@@ -1,36 +1,35 @@
 """
 Generates the 5 live-action-style video clips for the Yusurpay "Coming Soon"
-teaser via fal.ai (Kling / MiniMax / VEO all available through one queue
-API, FAL_KEY already configured in this project's .env).
+teaser via HiAPI's Seedance 2.0 model -- cinematic quality, native 9:16
+support, and this project's own ai-video-gen skill already recommends
+Seedance 2.0 as the top choice for cinematic/documentary-style work.
 
-RUN ON YOUR MAC (this cloud session's network blocks fal.run/queue.fal.run,
-confirmed by a direct connectivity test):
+RUN ON YOUR MAC (this cloud session's network blocks api.hiapi.ai -- not
+tested directly but consistent with every other video/image-gen domain
+blocked so far in this session):
 
     cd ~/n2aenerg/OpenMontage/remotion-composer
     source .venv_imagegen/bin/activate   # or make a fresh venv
     pip install requests
-    export FAL_KEY="<your key, same one already in OpenMontage/.env>"
+    export HIAPI_API_KEY="<your key, from HiAPI's API Keys page>"
     python3 generate_yusurpay_clips.py
 
-Hard spend cap for this pass: $25 (agreed with the project owner). Re-run
-a single scene instead of everything if one needs a redo:
+Hard spend cap for this pass: $25 (agreed with the project owner). Check
+https://www.hiapi.ai/en/dashboard/usage after each run to track credit
+spend against your balance (3,930 credits at last check). Re-run a single
+scene instead of everything if one needs a redo:
 
     python3 generate_yusurpay_clips.py s2_cash
 
-MODEL ID CAVEAT: fal.ai renames/versions its model slugs over time, and I
-could not verify this against their live API from this cloud session
-(network blocked). The default below (fal-ai/kling-video/v1.6/standard/
-text-to-video) is my best guess based on their documented naming pattern,
-NOT a confirmed-working endpoint. Before running the full batch:
+AUTH HEADER CAVEAT: the Seedance 2.0 docs page didn't show the exact auth
+header format (that's usually on a separate "Authentication" page). This
+script assumes `Authorization: Bearer <key>`, the most common convention.
+If the first request 401s, check HiAPI's Authentication docs page for the
+exact header name/format and adjust HEADERS below.
 
-    1. Go to fal.ai/models, search "kling" (or "minimax" / "veo"),
-       open a text-to-video model's page, click the API/"Run" tab.
-    2. Copy the exact model id shown there (the path after fal.ai/models/).
-    3. If it differs from MODEL_ID below, export FAL_MODEL_ID="<that id>"
-       before running, or edit MODEL_ID directly.
-    4. The page also shows the exact input schema (field names for prompt,
-       aspect ratio, duration) -- if the request below 422s on an unknown
-       field, adjust build_payload() to match what that page shows.
+generate_audio is set to False deliberately -- this project composes its
+own narration + background music track in Remotion, so model-generated
+ambient audio in the clips themselves would just need to be muted anyway.
 """
 import os
 import sys
@@ -38,83 +37,114 @@ import time
 import pathlib
 import requests
 
-API_KEY = os.environ.get("FAL_KEY")
+API_KEY = os.environ.get("HIAPI_API_KEY")
 if not API_KEY:
-    sys.exit("Set FAL_KEY in your environment first (same key as OpenMontage/.env)")
+    sys.exit("Set HIAPI_API_KEY in your environment first")
 
-MODEL_ID = os.environ.get("FAL_MODEL_ID", "fal-ai/kling-video/v1.6/standard/text-to-video")
-
-SUBMIT_URL = f"https://queue.fal.run/{MODEL_ID}"
-HEADERS = {"Authorization": f"Key {API_KEY}", "Content-Type": "application/json"}
+BASE_URL = "https://api.hiapi.ai/v1/tasks"
+HEADERS = {
+    "Authorization": f"Bearer {API_KEY}",
+    "Content-Type": "application/json",
+}
 
 OUT_DIR = pathlib.Path("public/yusurpay_clips")
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 DOC_STYLE = ", warm documentary color grade, natural light, vertical 9:16 framing"
 
+# duration here matches each scene's actual slot length in the Remotion
+# composition (150 frames = 5s, 180 frames = 6s at 30fps), so clips should
+# land almost exactly on the cut points without needing the Freeze fallback.
 SCENES = {
-    "s1_market": (
-        "Early morning at a busy grain market in Northern Nigeria. "
-        "Trucks being loaded with sacks of maize. Traders in kaftans "
-        "and caps. Golden sunlight, dust in the air, cinematic, "
-        "handheld camera" + DOC_STYLE
-    ),
-    "s2_cash": (
-        "Close-up of a trader's hands counting thick bundles of naira "
-        "notes under pressure. He glances around nervously. Shallow "
-        "depth of field" + DOC_STYLE
-    ),
-    "s3_road": (
-        "A long, empty rural road stretching to the horizon. A lone "
-        "motorcycle rider. Wide aerial drone shot, savanna landscape"
-        + DOC_STYLE
-    ),
-    "s4_payment": (
-        "A smiling farmer in a village market receives a payment on "
-        "his smartphone. The screen glows green. A trader beside him "
-        "nods. Warm, hopeful mood" + DOC_STYLE
-    ),
-    "s5_voice": (
-        "An older man holds a phone close and speaks into it. The "
-        "phone answers him with a soft green voice waveform on "
-        "screen. Village shop in the background" + DOC_STYLE
-    ),
+    "s1_market": {
+        "prompt": (
+            "Early morning at a busy grain market in Northern Nigeria. "
+            "Trucks being loaded with sacks of maize. Traders in kaftans "
+            "and caps. Golden sunlight, dust in the air, cinematic, "
+            "handheld camera" + DOC_STYLE
+        ),
+        "duration": 5,
+    },
+    "s2_cash": {
+        "prompt": (
+            "Close-up of a trader's hands counting thick bundles of naira "
+            "notes under pressure. He glances around nervously. Shallow "
+            "depth of field" + DOC_STYLE
+        ),
+        "duration": 5,
+    },
+    "s3_road": {
+        "prompt": (
+            "A long, empty rural road stretching to the horizon. A lone "
+            "motorcycle rider. Wide aerial drone shot, savanna landscape"
+            + DOC_STYLE
+        ),
+        "duration": 5,
+    },
+    "s4_payment": {
+        "prompt": (
+            "A smiling farmer in a village market receives a payment on "
+            "his smartphone. The screen glows green. A trader beside him "
+            "nods. Warm, hopeful mood" + DOC_STYLE
+        ),
+        "duration": 6,
+    },
+    "s5_voice": {
+        "prompt": (
+            "An older man holds a phone close and speaks into it. The "
+            "phone answers him with a soft green voice waveform on "
+            "screen. Village shop in the background" + DOC_STYLE
+        ),
+        "duration": 5,
+    },
 }
 
 
-def build_payload(prompt):
+def build_payload(prompt, duration):
     return {
-        "prompt": prompt,
-        "aspect_ratio": "9:16",
-        "duration": "5",
+        "model": "seedance-2.0",
+        "route": "ext",  # 720p/1080p/4k tiers; standard route caps at 480p
+        "input": {
+            "prompt": prompt,
+            "aspect_ratio": "9:16",
+            "duration": duration,
+            "resolution": "1080p",
+            "generate_audio": False,
+        },
     }
 
 
-def submit(prompt):
-    resp = requests.post(SUBMIT_URL, headers=HEADERS, json=build_payload(prompt), timeout=30)
+def submit(prompt, duration):
+    resp = requests.post(BASE_URL, headers=HEADERS, json=build_payload(prompt, duration), timeout=30)
     if resp.status_code >= 400:
         raise RuntimeError(f"HTTP {resp.status_code}: {resp.text[:500]}")
     data = resp.json()
-    return data["status_url"], data["response_url"]
+    task_id = data.get("taskId") or data.get("id") or data.get("task_id")
+    if not task_id:
+        raise RuntimeError(f"No task id in response: {data}")
+    return task_id
 
 
-def wait_for(status_url, response_url, max_wait_s=300, poll_s=8):
+def wait_for(task_id, max_wait_s=600, poll_s=10):
+    url = f"{BASE_URL}/{task_id}"
     start = time.time()
     while time.time() - start < max_wait_s:
-        resp = requests.get(status_url, headers=HEADERS, timeout=30)
+        resp = requests.get(url, headers=HEADERS, timeout=30)
         resp.raise_for_status()
-        status = resp.json().get("status")
-        if status == "COMPLETED":
-            result = requests.get(response_url, headers=HEADERS, timeout=30)
-            result.raise_for_status()
-            data = result.json()
-            video = data.get("video") or (data.get("videos") or [{}])[0]
-            url = video.get("url")
-            if not url:
-                raise RuntimeError(f"Completed but no video URL found, keys={list(data.keys())}")
-            return url
-        if status in ("ERROR", "FAILED"):
-            raise RuntimeError(f"Generation failed: {resp.text[:500]}")
+        data = resp.json()
+        status = (data.get("status") or "").lower()
+        if status in ("completed", "succeeded", "success"):
+            output = data.get("output") or data
+            video_url = (
+                output.get("video_url")
+                or output.get("videoUrl")
+                or (output.get("video") or {}).get("url")
+            )
+            if not video_url:
+                raise RuntimeError(f"Completed but no video URL found, keys={list(output.keys())}")
+            return video_url
+        if status in ("failed", "error"):
+            raise RuntimeError(f"Generation failed: {data}")
         time.sleep(poll_s)
     raise TimeoutError("timed out waiting for video generation")
 
@@ -127,11 +157,11 @@ def download(url, out_path):
                 f.write(chunk)
 
 
-def run_scene(name, prompt):
-    print(f"Submitting {name} (model={MODEL_ID})...")
-    status_url, response_url = submit(prompt)
-    print(f"  queued, polling {status_url} ...")
-    video_url = wait_for(status_url, response_url)
+def run_scene(name, spec):
+    print(f"Submitting {name} (duration={spec['duration']}s)...")
+    task_id = submit(spec["prompt"], spec["duration"])
+    print(f"  task_id={task_id}, polling...")
+    video_url = wait_for(task_id)
     out_path = OUT_DIR / f"{name}.mp4"
     download(video_url, out_path)
     print(f"  Saved {out_path}")
@@ -147,7 +177,8 @@ if __name__ == "__main__":
             run_scene(name, SCENES[name])
         except Exception as e:
             print(f"FAILED {name}: {e}")
-            print("  If this is a 404/422, the model id or payload schema is wrong --")
-            print("  check fal.ai/models for the exact id and input fields (see the")
-            print("  MODEL ID CAVEAT comment at the top of this file).")
+            print("  If this is a 401, check HiAPI's Authentication docs page for the exact")
+            print("  header format and update HEADERS at the top of this file.")
+            print("  If it's a 422, the field names above may not match -- compare against")
+            print("  the Request Body Example on the Seedance 2.0 API Docs page.")
     print("\nDone. Check public/yusurpay_clips/ and preview each clip before rendering.")
